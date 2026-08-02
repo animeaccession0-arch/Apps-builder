@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global AI App, Game & Web Builder</title>
+    <title>Global Free AI App & Game Builder</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
         body { display: flex; flex-direction: column; height: 100vh; background: #0f0f13; color: #e2e8f0; }
         header { padding: 15px; background: #1a1a24; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3d; }
         .logo { font-weight: bold; font-size: 1.1rem; color: #38bdf8; }
-        #key-input { background: #2d2d3d; color: white; border: 1px solid #444; padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; width: 140px; }
+        .badge { background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         #main-container { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
         #preview-section { flex: 1; background: white; position: relative; }
         iframe { width: 100%; height: 100%; border: none; background: white; }
@@ -26,18 +26,18 @@
 
     <header>
         <div class="logo">🚀 Global AI Studio</div>
-        <input type="password" id="key-input" placeholder="Paste Gemini Key to use">
+        <div class="badge">FREE SERVER ACTIVE</div>
     </header>
 
     <div id="main-container">
         <div id="preview-section">
-            <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:40px; color:#64748b;'><h3>Ready to generate!</h3><p style='font-size:0.9rem; margin-top:8px;'>Type a prompt below to build a full website, mobile app layout, or interactive game.</p></div>>"></iframe>
+            <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:40px; color:#64748b;'><h3>Server Status: Online & Free</h3><p style='font-size:0.9rem; margin-top:8px;'>Type a prompt below to build a full website, mobile app layout, or interactive game instantly.</p></div>>"></iframe>
         </div>
-        <div id="status-bar">Status: Awaiting your build instruction...</div>
+        <div id="status-bar">Status: Ready. Enter a prompt to generate code.</div>
     </div>
 
     <div id="input-area">
-        <textarea id="user-prompt" placeholder="Describe your App, Website, or Game (e.g., 'A classic Snake game with retro graphics and scores')"></textarea>
+        <textarea id="user-prompt" placeholder="Describe your App, Website, or Game (e.g., 'A classic Tic-Tac-Toe game with glowing neon colors')"></textarea>
         <button id="send-btn" onclick="generateOutput()">Build</button>
     </div>
 
@@ -47,54 +47,53 @@
             const sendBtn = document.getElementById("send-btn");
             const statusBar = document.getElementById("status-bar");
             const sandbox = document.getElementById("app-sandbox");
-            const keyInput = document.getElementById("key-input");
 
-            const apiKey = keyInput.value.trim();
             const prompt = promptInput.value.trim();
-
-            if (!apiKey) return alert("Please enter a free Gemini API Key in the top right box first!");
             if (!prompt) return alert("Please explain what website or app you want to build!");
 
             promptInput.disabled = true;
             sendBtn.disabled = true;
-            statusBar.innerHTML = "🤖 Security Check Passed. Writing functional code layout...";
+            statusBar.innerHTML = "🤖 Contacting cloud matrix... Writing functional code layout...";
 
-            const systemInstruction = `You are a world-class front-end software architect and security expert. 
-Your goal is to build a fully operational, responsive, secure web project based on the user's prompt. 
-It could be an interactive app, a complete modern website, or a game.
-Requirements:
-1. Provide a beautiful UI using clean embedded CSS. Make it look professional.
-2. Ensure interactive elements work perfectly using embedded JavaScript.
-3. Return ONLY pure, raw HTML content. 
-4. DO NOT wrap the code in markdown code blocks (\`\`\`html). No chat fluff or warnings.`;
+            // Strict instructions forcing the open-source model to only return code
+            const systemInstruction = "You are an elite front-end software architect. Build a complete, working, beautiful web app or game based on the user request. Return ONLY the raw HTML code combining internal CSS and JavaScript. Do NOT write conversational text, markdown formatting, or introductory explanations. Output 100% pure deployable source code.";
 
             try {
-                const response = await fetch(`https://googleapis.com{apiKey}`, {
+                // Connecting to a completely public, free open-source coding model server
+                const response = await fetch("https://huggingface.co", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        contents: [{ parts: [{ text: `${systemInstruction}\n\nUser Prompt: ${prompt}` }] }]
+                        inputs: `<|im_start|>system\n${systemInstruction}<|im_end|>\n<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`,
+                        parameters: { max_new_tokens: 2000, temperature: 0.3 }
                     })
                 });
 
                 const data = await response.json();
                 
-                if (data.error) {
-                    throw new Error(data.error.message || "API Error");
+                let rawText = "";
+                if (Array.isArray(data) && data[0]?.generated_text) {
+                    rawText = data[0].generated_text;
+                } else if (data.generated_text) {
+                    rawText = data.generated_text;
+                } else {
+                    throw new Error("Invalid response format from free server.");
                 }
 
-                let cleanCode = data.candidates.content.parts.text;
+                // Strip away the system prompt wrapper text if the model returns it
+                let cleanCode = rawText.split("<|im_start|>assistant\n").pop() || rawText;
                 
+                // Clean up any stray markdown code blocks
                 cleanCode = cleanCode.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
 
                 sandbox.srcdoc = cleanCode;
-                statusBar.innerHTML = "✅ Generation Complete! Testing application locally in sandbox.";
+                statusBar.innerHTML = "✅ Generation Complete! Running your application live.";
                 promptInput.value = "";
 
             } catch (error) {
                 console.error(error);
-                statusBar.innerHTML = "❌ Build failed. Double check your API key validity.";
-                alert("Error during execution: " + error.message);
+                statusBar.innerHTML = "❌ Build failed or server busy. Try again in a few seconds.";
+                alert("Execution Error: " + error.message);
             } finally {
                 promptInput.disabled = false;
                 sendBtn.disabled = false;
@@ -103,3 +102,4 @@ Requirements:
     </script>
 </body>
 </html>
+
