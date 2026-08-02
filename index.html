@@ -55,11 +55,9 @@
             sendBtn.disabled = true;
             statusBar.innerHTML = "🤖 Contacting cloud matrix... Writing functional code layout...";
 
-            // Strict instructions forcing the open-source model to only return code
             const systemInstruction = "You are an elite front-end software architect. Build a complete, working, beautiful web app or game based on the user request. Return ONLY the raw HTML code combining internal CSS and JavaScript. Do NOT write conversational text, markdown formatting, or introductory explanations. Output 100% pure deployable source code.";
 
             try {
-                // Connecting to a completely public, free open-source coding model server
                 const response = await fetch("https://huggingface.co", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -69,21 +67,26 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Server returned status ${response.status}. It might be temporarily busy.`);
+                }
+
                 const data = await response.json();
-                
                 let rawText = "";
-                if (Array.isArray(data) && data[0]?.generated_text) {
+
+                // Checking both structure types Hugging Face returns
+                if (Array.isArray(data) && data.length > 0 && data[0].generated_text) {
                     rawText = data[0].generated_text;
                 } else if (data.generated_text) {
                     rawText = data.generated_text;
                 } else {
-                    throw new Error("Invalid response format from free server.");
+                    throw new Error("Could not parse the generated code structure.");
                 }
 
-                // Strip away the system prompt wrapper text if the model returns it
+                // Clean the raw response wrapper away
                 let cleanCode = rawText.split("<|im_start|>assistant\n").pop() || rawText;
                 
-                // Clean up any stray markdown code blocks
+                // Clear out markdown indicators if the model slips them in
                 cleanCode = cleanCode.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
 
                 sandbox.srcdoc = cleanCode;
@@ -92,7 +95,7 @@
 
             } catch (error) {
                 console.error(error);
-                statusBar.innerHTML = "❌ Build failed or server busy. Try again in a few seconds.";
+                statusBar.innerHTML = "❌ Build failed. Please try clicking Build again.";
                 alert("Execution Error: " + error.message);
             } finally {
                 promptInput.disabled = false;
@@ -101,5 +104,5 @@
         }
     </script>
 </body>
-</html>
-
+                </html>
+        
