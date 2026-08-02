@@ -34,7 +34,7 @@
         <div id="preview-section">
             <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:60px; color:#64748b;'><h3>System Pipeline Online</h3><p style='font-size:0.9rem; margin-top:8px;'>Type a prompt below to build a full website, mobile app layout, or interactive game instantly.</p></div>>"></iframe>
         </div>
-        <div id="status-bar" id="current-status">Status: Ready. Enter a project prompt to generate source structures.</div>
+        <div id="status-bar">Status: Ready. Enter a project prompt to generate source structures.</div>
     </div>
 
     <div id="input-area">
@@ -59,24 +59,35 @@
             const engineeringInstruction = "You are an elite front-end software architect. Build a complete, functional, professional web project based on the user request. Return ONLY valid raw HTML code containing internal embedded CSS styles and JavaScript code logic. Do NOT wrap your output inside markdown code blocks like ```html. Do not include chat explanations, conversational headers, or footers. The text must be 100% pure deployable web-code string asset files.";
 
             try {
-                // Constructing an explicit payload payload system using a verified public CORS-free open AI portal route
-                const structuredMessageContext = `${engineeringInstruction}\n\nUser Request: ${userPromptText}`;
-                const secureSafeEndpoint = `https://pollinations.ai{encodeURIComponent(structuredMessageContext)}?model=qwen-coder&system=${encodeURIComponent(engineeringInstruction)}&cache=false&seed=${Math.floor(Math.random() * 99999)}`;
+                // Verified public endpoint layout utilizing OpenAI compatible structures 
+                const secureSafeEndpoint = "https://gen.pollinations.ai/v1/chat/completions";
 
-                const response = await fetch(secureSafeEndpoint);
+                const response = await fetch(secureSafeEndpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "openai", // Automatically routes to the highest-performing available free code model
+                        messages: [
+                            { role: "system", content: engineeringInstruction },
+                            { role: "user", content: userPromptText }
+                        ],
+                        temperature: 0.2
+                    })
+                });
 
                 if (!response.ok) {
                     throw new Error(`Inference stream rejected with server code ${response.status}. Cluster node congested.`);
                 }
 
-                let executionCodeString = await response.text();
-
-                if (!executionCodeString || !executionCodeString.trim()) {
-                    throw new Error("Mathematical data buffer mismatch. Emptied code package generated.");
+                const data = await response.json();
+                
+                if (!data.choices || data.choices.length === 0 || !data.choices[0].message) {
+                    throw new Error("Mathematical data buffer mismatch. Empty code package generated.");
                 }
 
-                // Strict validation sanitization against stray formatting strings injected by the base LLM processor
-                executionCodeString = executionCodeString.trim();
+                let executionCodeString = data.choices[0].message.content.trim();
+
+                // Strict validation sanitization against markdown indicators
                 executionCodeString = executionCodeString.replace(/^```html\s*/i, '');
                 executionCodeString = executionCodeString.replace(/```\s*$/, '');
                 executionCodeString = executionCodeString.trim();
