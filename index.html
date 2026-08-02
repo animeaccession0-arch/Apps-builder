@@ -53,39 +53,49 @@
 
             promptInput.disabled = true;
             sendBtn.disabled = true;
-            statusBar.innerHTML = "🤖 Initializing model interface... Building functional code logic...";
+            statusBar.innerHTML = "🤖 Routing traffic safely... Assembling live sandbox components...";
 
             const systemInstruction = "You are an elite front-end software architect. Build a complete, working, beautiful web app or game based on the user request. Return ONLY the raw HTML code combining internal CSS and JavaScript. Do NOT write conversational text, markdown formatting, or introductory explanations. Output 100% pure deployable source code.";
 
             try {
-                // Direct browser call using a standard JSON payload format to bypass library loading errors
-                const response = await fetch("https://huggingface.co", {
+                // Initialize conversation status token
+                const initRes = await fetch("https://duckduckgo.com", {
+                    headers: { "x-vqd-accept": "1" }
+                });
+                const vqdToken = initRes.headers.get("x-vqd-token");
+
+                if (!vqdToken) {
+                    throw new Error("Unable to establish tunnel connection with public router gateway.");
+                }
+
+                // Send generation payload request
+                const response = await fetch("https://duckduckgo.com", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        "x-vqd-token": vqdToken
+                    },
                     body: JSON.stringify({
-                        model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+                        model: "meta-llama/Llama-3-70b-instruct",
                         messages: [
                             { role: "system", content: systemInstruction },
                             { role: "user", content: prompt }
-                        ],
-                        max_tokens: 2000,
-                        temperature: 0.2
+                        ]
                     })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Server returned status ${response.status}. The free model network might be overloaded.`);
+                    throw new Error(`Server status returned ${response.status}. Network congested.`);
                 }
 
                 const data = await response.json();
-                
-                if (!data.choices || data.choices.length === 0) {
-                    throw new Error("Received an unexpected data structure from the free inference network.");
+                let cleanCode = data.message || data.reply || "";
+
+                if (!cleanCode) {
+                    throw new Error("Empty code buffer layout compiled by the target processor engine.");
                 }
 
-                let cleanCode = data.choices[0].message.content;
-
-                // Clear out markdown formatting elements safely
+                // Strip away markdown logic boundaries smoothly
                 cleanCode = cleanCode.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
 
                 sandbox.srcdoc = cleanCode;
