@@ -1,108 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Free AI App & Game Builder</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { display: flex; flex-direction: column; height: 100vh; background: #0f0f13; color: #e2e8f0; overflow: hidden; }
-        header { padding: 15px; background: #1a1a24; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3d; }
-        .logo { font-weight: bold; font-size: 1.1rem; color: #38bdf8; letter-spacing: 0.05em; }
-        .badge { background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-        #main-container { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-        #preview-section { flex: 1; background: #ffffff; position: relative; }
-        iframe { width: 100%; height: 100%; border: none; background: #ffffff; }
-        #status-bar { padding: 12px; background: #1a1a24; font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #2d2d3d; font-weight: 500; }
-        #input-area { display: flex; padding: 12px; background: #14141b; gap: 10px; border-top: 1px solid #2d2d3d; align-items: center; }
-        textarea { flex: 1; height: 55px; background: #1f1f2e; color: #ffffff; border: 1px solid #3d3d5c; border-radius: 6px; padding: 10px; resize: none; font-size: 0.9rem; transition: border-color 0.2s; }
-        textarea:focus { border-color: #38bdf8; outline: none; }
-        button { background: #0284c7; color: #ffffff; border: none; padding: 0 24px; height: 55px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s, transform 0.1s; font-size: 0.95rem; }
-        button:hover { background: #0369a1; }
-        button:active { transform: scale(0.98); }
-        button:disabled { background: #4b5563; cursor: not-allowed; transform: none; }
-    </style>
-</head>
-<body>
+async function generateOutput() {
+    const promptInput = document.getElementById("user-prompt");
+    const sendBtn = document.getElementById("send-btn");
+    const statusBar = document.getElementById("status-bar");
+    const sandbox = document.getElementById("app-sandbox");
+    const keyInput = document.getElementById("key-input");
 
-    <header>
-        <div class="logo">🚀 Global AI Studio</div>
-        <div class="badge">Engine Active</div>
-    </header>
+    const apiKey = keyInput.value.trim();
+    const userPromptText = promptInput.value.trim();
 
-    <div id="main-container">
-        <div id="preview-section">
-            <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:60px; color:#64748b;'><h3>System Pipeline Online</h3><p style='font-size:0.9rem; margin-top:8px;'>Type a prompt below to build a full website, mobile app layout, or interactive game instantly.</p></div>>"></iframe>
-        </div>
-        <div id="status-bar">Status: Ready. Enter a project prompt to generate source structures.</div>
-    </div>
+    if (!userPromptText) return alert("Validation Alert: App request context cannot be processed empty.");
 
-    <div id="input-area">
-        <textarea id="user-prompt" placeholder="Describe the application, website dashboard, or browser arcade game you want to compile..."></textarea>
-        <button id="send-btn" onclick="generateOutput()">Build</button>
-    </div>
+    // ---- START TEST MODE BYPASS ----
+    if (apiKey === "test-mode") {
+        promptInput.disabled = true;
+        sendBtn.disabled = true;
+        statusBar.innerHTML = "🛠️ [TEST MODE] Injecting pre-compiled Data Modeling Engine layout...";
+        
+        // Mocking a tiny delay to simulate network thinking time
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-    <script>
-        async function generateOutput() {
-            const promptInput = document.getElementById("user-prompt");
-            const sendBtn = document.getElementById("send-btn");
-            const statusBar = document.getElementById("status-bar");
-            const sandbox = document.getElementById("app-sandbox");
+        // This is a pre-written, working code snippet for testing purposes
+        const mockGeneratedApp = `
+            <!DOCTYPE html>
+            <html>
+            <body style="background:#14141b; color:white; font-family:sans-serif; text-align:center; padding:40px;">
+                <h2 style="color:#38bdf8;">📊 Mock Data Modeling App Loaded Successfully!</h2>
+                <p>This proves your sandbox system renders HTML, CSS, and JS correctly.</p>
+                <button onclick="alert('Run Button Works!')" style="background:#0284c7; color:white; border:none; padding:10px 20px; border-radius:4px; font-weight:bold; cursor:pointer; margin-top:20px;">🚀 Run Analysis</button>
+            </body>
+            </html>
+        `;
 
-            const userPromptText = promptInput.value.trim();
-            if (!userPromptText) return alert("Validation Alert: App request context cannot be processed empty.");
+        sandbox.srcdoc = mockGeneratedApp;
+        statusBar.innerHTML = "✅ Test Successful! Code loaded natively without API cost.";
+        promptInput.value = "";
+        promptInput.disabled = false;
+        sendBtn.disabled = false;
+        return; // Exits early so it doesn't contact Google
+    }
+    // ---- END TEST MODE BYPASS ----
 
-            promptInput.disabled = true;
-            sendBtn.disabled = true;
-            statusBar.innerHTML = "🤖 Initiating safe connection... Packaging system instructions into cloud nodes...";
+    if (!apiKey) return alert("Security Check: Please paste your free Gemini API key first.");
 
-            const engineeringInstruction = "You are an elite front-end software architect. Build a complete, functional, professional web project based on the user request. Return ONLY valid raw HTML code containing internal embedded CSS styles and JavaScript code logic. Do NOT wrap your output inside markdown code blocks like ```html. Do not include chat explanations, conversational headers, or footers. The text must be 100% pure deployable web-code string asset files.";
+    promptInput.disabled = true;
+    sendBtn.disabled = true;
+    statusBar.innerHTML = "🤖 Authenticating key... Generating clean web layout via Google Cloud network...";
 
-            try {
-                const secureSafeEndpoint = "https://pollinations.ai";
-                
-                const response = await fetch(secureSafeEndpoint, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: "system", content: engineeringInstruction },
-                            { role: "user", content: userPromptText }
-                        ],
-                        model: "qwen-coder", // Changed to the unrestricted, 100% free specialized coding model
-                        seed: Math.floor(Math.random() * 99999),
-                        jsonMode: false
-                    })
-                });
+    const engineeringInstruction = "You are an elite front-end software architect. Build a complete, functional, professional web project based on the user request. Return ONLY valid raw HTML code containing internal embedded CSS styles and JavaScript code logic. Do NOT wrap your output inside markdown code blocks like ```html. Do not include chat explanations, conversational headers, or footers. The text must be 100% pure deployable web-code string asset files.";
 
-                if (!response.ok) {
-                    throw new Error(`Inference stream rejected with server code ${response.status}. Cluster node congested.`);
-                }
+    try {
+        const secureSafeEndpoint = `https://googleapis.com{apiKey}`;
 
-                let executionCodeString = await response.text();
+        const response = await fetch(secureSafeEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: `${engineeringInstruction}\n\nUser Request: ${userPromptText}` }] }]
+            })
+        });
 
-                if (!executionCodeString || !executionCodeString.trim()) {
-                    throw new Error("Empty code package generated by the target node pipeline.");
-                }
-
-                executionCodeString = executionCodeString.trim();
-                executionCodeString = executionCodeString.replace(/^```html\s*/i, '');
-                executionCodeString = executionCodeString.replace(/```\s*$/, '');
-                executionCodeString = executionCodeString.trim();
-
-                sandbox.srcdoc = executionCodeString;
-                statusBar.innerHTML = "✅ Code compilation complete! Running your application live.";
-                promptInput.value = "";
-
-            } catch (err) {
-                console.error(err);
-                statusBar.innerHTML = "❌ Pipeline process halted. Reset communication layer and retry.";
-                alert("Runtime Exception Blocked: " + err.message);
-            } finally {
-                promptInput.disabled = false;
-                sendBtn.disabled = false;
-            }
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error?.message || `Server status code ${response.status}`);
         }
-    </script>
-</body>
-</html>
+
+        const data = await response.json();
+        let executionCodeString = data.candidates[0].content.parts[0].text.trim();
+
+        executionCodeString = executionCodeString.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
+
+        sandbox.srcdoc = executionCodeString;
+        statusBar.innerHTML = "✅ Verification Passed! Code running smoothly inside active sandbox frame.";
+        promptInput.value = "";
+
+    } catch (err) {
+        console.error(err);
+        statusBar.innerHTML = "❌ Pipeline process halted. Verify API key authenticity and retry.";
+        alert("Runtime Exception Blocked: " + err.message);
+    } finally {
+        promptInput.disabled = false;
+        sendBtn.disabled = false;
+    }
+}
