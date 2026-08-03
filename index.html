@@ -28,9 +28,9 @@
     </style>
     
     <script>
-        // GLOBAL CATCH: Captures absolutely any unhandled code crash anywhere on the web viewport instantly
+        // Global Error Watcher - Stays active to capture and display debugging details
         window.onerror = function(message, source, lineno, colno, error) {
-            alert("🛑 GLOBAL CODE ENGINE CRASH DETECTED:\n\nError: " + message + "\nLine Number: " + lineno + "\nSource File: " + source);
+            alert("🛑 SYSTEM DEBUG ALERT:\n\nMessage: " + message + "\nLine: " + lineno);
             return false;
         };
     </script>
@@ -69,7 +69,7 @@
                     document.getElementById("status-text").innerHTML = "✅ Saved API Key loaded securely into workspace.";
                 }
             } catch(e) {
-                console.error("Local storage allocation blocked: ", e);
+                console.error(e);
             }
         };
 
@@ -78,7 +78,7 @@
                 const keyVal = document.getElementById("key-input").value.trim();
                 localStorage.setItem("user_gemini_key", keyVal);
             } catch(e) {
-                console.error("Local storage save action blocked: ", e);
+                console.error(e);
             }
         }
 
@@ -104,8 +104,6 @@
             const keyInput = document.getElementById("key-input");
             const selectedEngine = document.getElementById("engine-select").value;
 
-            // CRITICAL TEST PIN: Force immediate visual validation on click to prove pipeline is alive
-            console.log("Build button click successfully captured.");
             statusBar.innerHTML = "⏳ Processing initiation request parameters...";
 
             const apiKey = keyInput.value.trim();
@@ -171,3 +169,6 @@
 
                 const data = await response.json();
                 
+                // FIXED & RE-VERIFIED ARRAY PARSING PIPELINE
+                if (!data || !data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+                    throw new Error("API response formatted unexpectedly.");
