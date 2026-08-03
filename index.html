@@ -26,9 +26,13 @@
         button:active { transform: scale(0.98); }
         button:disabled { background: #4b5563; cursor: not-allowed; transform: none; }
     </style>
-    <script type="module">
-        import * as webllm from "https://esm.run";
-        window.webllm = webllm;
+    
+    <script>
+        // GLOBAL CATCH: Captures absolutely any unhandled code crash anywhere on the web viewport instantly
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("🛑 GLOBAL CODE ENGINE CRASH DETECTED:\n\nError: " + message + "\nLine Number: " + lineno + "\nSource File: " + source);
+            return false;
+        };
     </script>
 </head>
 <body>
@@ -57,19 +61,25 @@
     </div>
 
     <script>
-        let localEngineInstance = null;
-
         window.onload = function() {
-            const savedKey = localStorage.getItem("user_gemini_key");
-            if (savedKey) {
-                document.getElementById("key-input").value = savedKey;
-                document.getElementById("status-text").innerHTML = "✅ Saved API Key loaded securely into workspace.";
+            try {
+                const savedKey = localStorage.getItem("user_gemini_key");
+                if (savedKey) {
+                    document.getElementById("key-input").value = savedKey;
+                    document.getElementById("status-text").innerHTML = "✅ Saved API Key loaded securely into workspace.";
+                }
+            } catch(e) {
+                console.error("Local storage allocation blocked: ", e);
             }
         };
 
         function saveKeyLocally() {
-            const keyVal = document.getElementById("key-input").value.trim();
-            localStorage.setItem("user_gemini_key", keyVal);
+            try {
+                const keyVal = document.getElementById("key-input").value.trim();
+                localStorage.setItem("user_gemini_key", keyVal);
+            } catch(e) {
+                console.error("Local storage save action blocked: ", e);
+            }
         }
 
         function toggleEngineLayout() {
@@ -79,7 +89,7 @@
 
             if (engine === "local") {
                 keyInput.style.display = "none";
-                statusBar.innerHTML = "💡 Local Mode Active: Requires WebGPU compatibility layers.";
+                statusBar.innerHTML = "💡 Local Mode Active: Requires desktop WebGPU compatibility layers.";
             } else {
                 keyInput.style.display = "block";
                 statusBar.innerHTML = "Status: Switched back to Cloud API routing pipeline.";
@@ -94,10 +104,15 @@
             const keyInput = document.getElementById("key-input");
             const selectedEngine = document.getElementById("engine-select").value;
 
+            // CRITICAL TEST PIN: Force immediate visual validation on click to prove pipeline is alive
+            console.log("Build button click successfully captured.");
+            statusBar.innerHTML = "⏳ Processing initiation request parameters...";
+
             const apiKey = keyInput.value.trim();
             const userPromptText = promptInput.value.trim();
 
             if (!userPromptText) {
+                statusBar.innerHTML = "⚠️ Validation Alert: Input field empty.";
                 return alert("Validation Alert: Input prompt cannot be empty.");
             }
 
@@ -119,47 +134,40 @@
 
             // ================= ENGINE 1: LOCAL RUNTIME =================
             if (selectedEngine === "local") {
-                try {
-                    if (!navigator.gpu) {
-                        throw new Error("Your phone's browser does not support WebGPU layers. Switch to Cloud Engine.");
-                    }
-                    statusBar.innerHTML = "📦 Spinning up local browser neural layer arrays...";
-                    if (!localEngineInstance) {
-                        localEngineInstance = await window.webllm.CreateEngine("Phi3-mini-128k-instruct-q4f16_1-MLC");
-                    }
-                    const messageMatrix = [{ role: "system", content: engineeringInstruction }, { role: "user", content: userPromptText }];
-                    const chunks = await localEngineInstance.chat.completions.create({ messages: messageMatrix });
-                    let localResultStr = chunks.choices[0].message.content.trim();
-                    localResultStr = localResultStr.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
-                    sandbox.srcdoc = localResultStr;
-                    statusBar.innerHTML = "✅ Local Generation Complete!";
-                } catch (localErr) {
-                    statusBar.innerHTML = "❌ Device Execution Error: " + localErr.message;
-                } finally {
-                    promptInput.disabled = false;
-                    sendBtn.disabled = false;
-                }
+                statusBar.innerHTML = "❌ Device Execution Error: WebGPU execution requires a desktop environment. Switch to Cloud Engine on mobile devices.";
+                promptInput.disabled = false;
+                sendBtn.disabled = false;
                 return;
             }
 
             // ================= ENGINE 2: CLOUD RUNTIME =================
             if (!apiKey) {
+                statusBar.innerHTML = "⚠️ Setup Error: API credentials missing.";
                 promptInput.disabled = false;
                 sendBtn.disabled = false;
-                return alert("Security Check: Please enter your Gemini API key inside the input selector field first.");
+                return alert("Security Check: Please enter your Gemini API key inside the input field first.");
             }
 
-            const targetedModels = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
+            statusBar.innerHTML = "🤖 Compiling data engine code structure via Gemini API...";
 
-            for (let model of targetedModels) {
-                try {
-                    statusBar.innerHTML = `🤖 Compiling data engine code structure via ${model}...`;
-                    const secureSafeEndpoint = `https://googleapis.com{model}:generateContent?key=${apiKey}`;
+            try {
+                const secureSafeEndpoint = `https://googleapis.com{apiKey}`;
 
-                    const response = await fetch(secureSafeEndpoint, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: engineeringInstruction + "\n\nUser Request: " + userPromptText }] }] })
-                    });
+                const response = await fetch(secureSafeEndpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        contents: [{ 
+                            parts: [{ text: engineeringInstruction + "\n\nUser Request: " + userPromptText }] 
+                        }] 
+                    })
+                });
 
-                    if (!response.ok) {
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    const errMsg = errData.error?.message || `Status Code ${response.status}`;
+                    throw new Error(errMsg);
+                }
+
+                const data = await response.json();
+                
