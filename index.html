@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise AI App & Game Builder</title>
+    <title>Enterprise Dual-Engine AI Studio</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { display: flex; flex-direction: column; height: 100vh; background: #0f0f13; color: #e2e8f0; overflow: hidden; }
-        header { padding: 15px; background: #1a1a24; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3d; }
+        header { padding: 15px; background: #1a1a24; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3d; gap: 15px; flex-wrap: wrap; }
         .logo { font-weight: bold; font-size: 1.1rem; color: #38bdf8; letter-spacing: 0.05em; }
+        .controls-group { display: flex; gap: 10px; align-items: center; }
+        select { background: #1f1f2e; color: #ffffff; border: 1px solid #3d3d5c; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; outline: none; }
+        select:focus { border-color: #38bdf8; }
         #key-input { background: #1f1f2e; color: #ffffff; border: 1px solid #3d3d5c; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; width: 220px; transition: border-color 0.2s; }
         #key-input:focus { border-color: #38bdf8; outline: none; }
         #main-container { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
@@ -23,19 +26,30 @@
         button:active { transform: scale(0.98); }
         button:disabled { background: #4b5563; cursor: not-allowed; transform: none; }
     </style>
+    <!-- WebLLM CDN loaded securely to execute highly advanced local model runtimes natively -->
+    <script type="module">
+        import * as webllm from "https://esm.run";
+        window.webllm = webllm;
+    </script>
 </head>
 <body>
 
     <header>
         <div class="logo">🚀 Global AI Studio</div>
-        <input type="password" id="key-input" placeholder="Enter Free Gemini API Key">
+        <div class="controls-group">
+            <select id="engine-select" onchange="toggleEngineLayout()">
+                <option value="gemini">Cloud Engine: User Gemini Key</option>
+                <option value="local">Local Engine: 100% Free Browser LLM</option>
+            </select>
+            <input type="password" id="key-input" placeholder="Enter Your Free Gemini Key">
+        </div>
     </header>
 
     <div id="main-container">
         <div id="preview-section">
-            <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:60px; color:#64748b;'><h3>Official Gateway Ready</h3><p style='font-size:0.9rem; margin-top:8px;'>Paste your free Gemini API key above and enter a prompt below to build any tool instantly.</p></div>"></iframe>
+            <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:60px; color:#64748b;'><h3>Pipeline Systems Initialization Complete</h3><p style='font-size:0.9rem; margin-top:8px;'>Choose Cloud Engine to input custom API credentials, or select Local Engine to compile applications for free inside your local hardware architecture.</p></div>"></iframe>
         </div>
-        <div id="status-text">Status: Awaiting Gemini API key verification...</div>
+        <div id="status-text">Status: Systems online. Awaiting infrastructure runtime selection...</div>
     </div>
 
     <div id="input-area">
@@ -44,12 +58,29 @@
     </div>
 
     <script>
+        let localEngineInstance = null;
+
+        function toggleEngineLayout() {
+            const engine = document.getElementById("engine-select").value;
+            const keyInput = document.getElementById("key-input");
+            const statusBar = document.getElementById("status-text");
+
+            if (engine === "local") {
+                keyInput.style.display = "none";
+                statusBar.innerHTML = "💡 Local Core Selected: Ready to synthesize modules on device WebGPU structures.";
+            } else {
+                keyInput.style.display = "block";
+                statusBar.innerHTML = "Status: Awaiting custom user Gemini API credential strings...";
+            }
+        }
+
         async function generateOutput() {
             const promptInput = document.getElementById("user-prompt");
             const sendBtn = document.getElementById("send-btn");
             const statusBar = document.getElementById("status-text");
             const sandbox = document.getElementById("app-sandbox");
             const keyInput = document.getElementById("key-input");
+            const selectedEngine = document.getElementById("engine-select").value;
 
             const apiKey = keyInput.value.trim();
             const userPromptText = promptInput.value.trim();
@@ -58,64 +89,62 @@
                 return alert("Validation Alert: App request context cannot be processed empty.");
             }
 
-            if (apiKey === "test-mode") {
-                promptInput.disabled = true;
-                sendBtn.disabled = true;
-                statusBar.innerHTML = "🛠️ [TEST MODE] Injecting pre-compiled Data Modeling Engine layout...";
-                
-                await new Promise(resolve => setTimeout(resolve, 1200));
+            promptInput.disabled = true;
+            sendBtn.disabled = true;
 
-                const mockGeneratedApp = `<!DOCTYPE html><html><body style="background:#14141b; color:white; font-family:sans-serif; text-align:center; padding:40px;"><h2 style="color:#38bdf8;">📊 Mock Data Modeling App Loaded!</h2><p style="margin-top:10px; color:#aaa;">This proves your sandbox system renders HTML, CSS, and JS perfectly.</p><button onclick="alert('Run Button Works!')" style="background:#0284c7; color:white; border:none; padding:10px 20px; border-radius:4px; font-weight:bold; cursor:pointer; margin-top:20px;">🚀 Run Analysis</button></body></html>`;
+            const engineeringInstruction = `You are an elite web architect. Build a 100% complete, standalone Data Modeling & Charting dashboard application. Must include client-side interactive SVG charts (Bar/Line/Scatter), dynamic analytical operations (Mean, Regression y=mx+b), localized zero-trust data sandbox badges, and an instant dynamic dropdown global language translation engine. Output ONLY raw, production valid HTML/JS. Do NOT wrap inside markdown blocks. No explanations outside the code elements. Start with <!DOCTYPE html>.`;
 
-                sandbox.srcdoc = mockGeneratedApp;
-                statusBar.innerHTML = "✅ Test Successful! Code loaded natively without API cost.";
-                promptInput.value = "";
-                promptInput.disabled = false;
-                sendBtn.disabled = false;
+            // ================= LAYER 1: LOCAL FREE OFFLINE AI RUNTIME =================
+            if (selectedEngine === "local") {
+                try {
+                    if (!window.webllm) {
+                        throw new Error("WebLLM framework execution library blocked or offline.");
+                    }
+                    
+                    statusBar.innerHTML = "📦 Spinning up internal browser sandbox neural layers... (Can take time on initial run)";
+                    
+                    if (!localEngineInstance) {
+                        // Use a fast, highly optimized layout engine model designed for fluid client compilations
+                        localEngineInstance = await window.webllm.CreateEngine("Phi3-mini-128k-instruct-q4f16_1-MLC");
+                    }
+
+                    statusBar.innerHTML = "🧠 Local LLM Model executing context strings. Compiling layout code directly on GPU...";
+
+                    const messageMatrix = [
+                        { role: "system", content: engineeringInstruction },
+                        { role: "user", content: userPromptText }
+                    ];
+
+                    const chunks = await localEngineInstance.chat.completions.create({ messages: messageMatrix });
+                    let localResultStr = chunks.choices[0].message.content.trim();
+
+                    localResultStr = localResultStr.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
+                    
+                    sandbox.srcdoc = localResultStr;
+                    statusBar.innerHTML = "✅ Local Synthesis Complete! App structural instance executed 100% free.";
+                    promptInput.value = "";
+
+                } catch (localErr) {
+                    console.error(localErr);
+                    statusBar.innerHTML = "❌ Local hardware pipeline allocation dropped: " + localErr.message;
+                    alert("Hardware Sandbox Engine Exception: Ensure your browser supports WebGPU layers.");
+                } finally {
+                    promptInput.disabled = false;
+                    sendBtn.disabled = false;
+                }
                 return;
             }
 
+            // ================= LAYER 2: USER CLOUD API KEY RUNTIME =================
             if (!apiKey) {
-                return alert("Security Check: Please paste your free Gemini API key into the top right input field first.");
+                promptInput.disabled = false;
+                sendBtn.disabled = false;
+                return alert("Security Check: Please paste your personal free Gemini API key into the top right input field first.");
             }
 
-            promptInput.disabled = true;
-            sendBtn.disabled = true;
-            statusBar.innerHTML = "🤖 Authenticating key... Generating clean web layout via Google Cloud network...";
-
-            // Structured System Ruleset Injection to govern behavior, security patterns, and translation parameters
-            const engineeringInstruction = `You are an elite, world-class full-stack frontend software architect and security engineer. 
-
-Your task is to build a completely self-contained, enterprise-grade Automated Data Modeling & Charting Application that features extreme Client-Side Security, high analytical intelligence, and absolute Global Multilingual Translation capabilities.
-
-CRITICAL CODE FORMATTING RULE:
-- You must output ONLY raw, valid, production-ready HTML code.
-- Do NOT wrap your response inside markdown blocks (do not use \`\`\`html or \`\`\`).
-- No conversational text, no headers, and no footers. Start directly with <!DOCTYPE html>.
-
-KEY SYSTEM ARCHITECTURE REQUIREMENT SUB-SYSTEMS:
-
-1. COMPREHENSIVE MULTILINGUAL FRAMEWORK:
-- Implement a drop-down language selector supporting global languages (English, Japanese, Spanish, Mandarin, Hindi, Arabic, German, French, etc.).
-- The translation mechanism must be instant and completely client-side.
-- All UI labels, upload buttons, error states, interactive charts, and structural analysis fields must fully translate dynamically when the language changes.
-
-2. SECURE DATA PARSING & DISCONNECTED PROCESSING:
-- Build an elegant UI containing a data import drop-down or raw text delimiter matrix parsing area (supporting CSV/JSON formats).
-- Security Enforcement: Explicitly process all statistical computations locally within browser sandboxed memory. Show a secure visual indicator badge reading "Local Zero-Trust Execution Sandbox Active". 
-- Implement rigid data input sanitization algorithms to neutralize cross-site scripting (XSS) vectors or logic injection before processing data.
-
-3. ADVANCED INTELLIGENT MODELING & CHART ENGINE:
-- Program a mathematical processing layer inside native JavaScript to instantly compute critical data attributes: Mean, Median, Variance, Standard Deviation, Outliers, and Linear Regression Trajectory lines (y = mx + b).
-- Render beautifully responsive statistical charts (Bar, Line, and Scatter plots) using highly polished, standards-compliant inline SVG techniques or native HTML Canvas APIs. Do not use external CDN libraries (like Chart.js) to ensure zero third-party script vulnerabilities.
-- Provide a summary analysis pane generating intelligent automated insights regarding data trends, anomalies, and performance metrics based on the input values.
-
-4. PREMIUM DARK CYBERPUNK USER INTERFACE:
-- Style the application with an incredibly slick, premium enterprise dashboard theme matching your global hosting platform. 
-- Use deep blacks (#09090b), slate borders (#27272a), neon accents (#38bdf8), and clear font hierarchies. Ensure clean spacing, responsive layouts, and interactive hover feedback animations.`;
+            statusBar.innerHTML = "🤖 Routing payload through external client user Key node pipeline...";
 
             try {
-                // Official dynamic Google Gemini endpoint configuration routing format
                 const secureSafeEndpoint = `https://googleapis.com{apiKey}`;
 
                 const response = await fetch(secureSafeEndpoint, {
@@ -128,22 +157,13 @@ KEY SYSTEM ARCHITECTURE REQUIREMENT SUB-SYSTEMS:
                     })
                 });
 
+                if (response.status === 402 || response.status === 429) {
+                    throw new Error("User key allocation throttled or congested (Error " + response.status + "). Instruct customer to check key limits.");
+                }
+
                 if (!response.ok) {
                     const errData = await response.json().catch(() => ({}));
-                    const errMsg = errData.error?.message || "Server status code " + response.status;
-                    throw new Error("Google API error: " + errMsg);
+                    throw new Error(errData.error?.message || "Server Error: " + response.status);
                 }
 
                 const data = await response.json();
-                
-                if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content?.parts?.[0]?.text) {
-                    throw new Error("Invalid API response format structure.");
-                }
-
-                let executionCodeString = data.candidates[0].content.parts[0].text.trim();
-
-                // Clean up markdown block wrapping structural overflows if returned by mistake
-                executionCodeString = executionCodeString.replace(/^```html\s*/i, '');
-                executionCodeString = executionCodeString.replace(/```\s*$/, '');
-                executionCodeString = executionCodeString.trim();
-
