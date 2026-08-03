@@ -28,7 +28,7 @@
     </style>
     
     <script>
-        // Global Error Watcher - Stays active to capture and display debugging details
+        // Global Error Watcher to alert us of any remaining code compilation bugs immediately
         window.onerror = function(message, source, lineno, colno, error) {
             alert("🛑 SYSTEM DEBUG ALERT:\n\nMessage: " + message + "\nLine: " + lineno);
             return false;
@@ -169,5 +169,7 @@
 
                 const data = await response.json();
                 
-                // CLEAN REWRITTEN PARSING LEVEL: Safely parses response segments without repetitive validation loops
-                if (!data || !data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+                // ULTIMATE ARRAY FIX: Using Optional Chaining (?) to safely extract the string without long safety statements
+                let executionCodeString = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (!executionCodeString) {
