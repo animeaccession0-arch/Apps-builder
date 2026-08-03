@@ -41,7 +41,7 @@
                 <option value="gemini">Cloud Engine: User Gemini Key</option>
                 <option value="local">Local Engine: 100% Free Browser LLM</option>
             </select>
-            <input type="password" id="key-input" placeholder="Enter Your Free Gemini Key">
+            <input type="password" id="key-input" placeholder="Enter Your Free Gemini Key" oninput="saveKeyLocally()">
         </div>
     </header>
 
@@ -59,6 +59,20 @@
 
     <script>
         let localEngineInstance = null;
+
+        // Automatically load previously stored API keys on system boot up
+        window.onload = function() {
+            const savedKey = localStorage.getItem("user_gemini_key");
+            if (savedKey) {
+                document.getElementById("key-input").value = savedKey;
+                document.getElementById("status-text").innerHTML = "✅ Saved API Key loaded securely from browser memory.";
+            }
+        };
+
+        function saveKeyLocally() {
+            const keyVal = document.getElementById("key-input").value.trim();
+            localStorage.setItem("user_gemini_key", keyVal);
+        }
 
         function toggleEngineLayout() {
             const engine = document.getElementById("engine-select").value;
@@ -101,10 +115,9 @@
                         throw new Error("WebLLM framework execution library blocked or offline.");
                     }
                     
-                    statusBar.innerHTML = "📦 Spinning up internal browser sandbox neural layers... (Can take time on initial run)";
+                    statusBar.innerHTML = "📦 Spinning up internal browser sandbox neural layers... (Can take 1-2 mins on initial run)";
                     
                     if (!localEngineInstance) {
-                        // Use a fast, highly optimized layout engine model designed for fluid client compilations
                         localEngineInstance = await window.webllm.CreateEngine("Phi3-mini-128k-instruct-q4f16_1-MLC");
                     }
 
@@ -144,26 +157,17 @@
 
             statusBar.innerHTML = "🤖 Routing payload through external client user Key node pipeline...";
 
-            try {
-                const secureSafeEndpoint = `https://googleapis.com{apiKey}`;
+            // We list fallback models to switch to if the preferred configuration gives a 402 code
+            const targetedModels = [
+                "gemini-2.5-flash",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro"
+            ];
 
-                const response = await fetch(secureSafeEndpoint, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ 
-                            parts: [{ text: engineeringInstruction + "\n\nUser Request: " + userPromptText }] 
-                        }]
-                    })
-                });
+            let networkSuccess = false;
 
-                if (response.status === 402 || response.status === 429) {
-                    throw new Error("User key allocation throttled or congested (Error " + response.status + "). Instruct customer to check key limits.");
-                }
+            for (let model of targetedModels) {
+                try {
+                    statusBar.innerHTML = `🤖 Attempting compilation layout via ${model}...`;
+                    const secureSafeEndpoint = `https://googleapis.com{model}:generateContent?key=${apiKey}`;
 
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error?.message || "Server Error: " + response.status);
-                }
-
-                const data = await response.json();
