@@ -14,7 +14,7 @@
         #main-container { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
         #preview-section { flex: 1; background: #ffffff; position: relative; }
         iframe { width: 100%; height: 100%; border: none; background: #ffffff; }
-        #status-bar { padding: 12px; background: #1a1a24; font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #2d2d3d; font-weight: 500; }
+        #status-text { padding: 12px; background: #1a1a24; font-size: 0.85rem; color: #94a3b8; border-top: 1px solid #2d2d3d; font-weight: 500; }
         #input-area { display: flex; padding: 12px; background: #14141b; gap: 10px; border-top: 1px solid #2d2d3d; align-items: center; }
         textarea { flex: 1; height: 55px; background: #1f1f2e; color: #ffffff; border: 1px solid #3d3d5c; border-radius: 6px; padding: 10px; resize: none; font-size: 0.9rem; transition: border-color 0.2s; }
         textarea:focus { border-color: #38bdf8; outline: none; }
@@ -33,9 +33,9 @@
 
     <div id="main-container">
         <div id="preview-section">
-            <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:60px; color:#64748b;'><h3>Official Gateway Ready</h3><p style='font-size:0.9rem; margin-top:8px;'>Paste your free Gemini API key above and enter a prompt below to build any tool instantly.</p></div>>"></iframe>
+            <iframe id="app-sandbox" srcdoc="<div style='font-family:sans-serif; text-align:center; padding-top:60px; color:#64748b;'><h3>Official Gateway Ready</h3><p style='font-size:0.9rem; margin-top:8px;'>Paste your free Gemini API key above and enter a prompt below to build any tool instantly.</p></div>"></iframe>
         </div>
-        <div id="status-bar" id="status-text">Status: Awaiting Gemini API key verification...</div>
+        <div id="status-text">Status: Awaiting Gemini API key verification...</div>
     </div>
 
     <div id="input-area">
@@ -83,10 +83,40 @@
             sendBtn.disabled = true;
             statusBar.innerHTML = "🤖 Authenticating key... Generating clean web layout via Google Cloud network...";
 
-            const engineeringInstruction = "You are an elite front-end software architect. Build a complete, functional, professional web project based on the user request. Return ONLY valid raw HTML code containing internal embedded CSS styles and JavaScript code logic. Do NOT wrap your output inside markdown code blocks like ```html. Do not include chat explanations, conversational headers, or footers. The text must be 100% pure deployable web-code string asset files.";
+            // Structured System Ruleset Injection to govern behavior, security patterns, and translation parameters
+            const engineeringInstruction = `You are an elite, world-class full-stack frontend software architect and security engineer. 
+
+Your task is to build a completely self-contained, enterprise-grade Automated Data Modeling & Charting Application that features extreme Client-Side Security, high analytical intelligence, and absolute Global Multilingual Translation capabilities.
+
+CRITICAL CODE FORMATTING RULE:
+- You must output ONLY raw, valid, production-ready HTML code.
+- Do NOT wrap your response inside markdown blocks (do not use \`\`\`html or \`\`\`).
+- No conversational text, no headers, and no footers. Start directly with <!DOCTYPE html>.
+
+KEY SYSTEM ARCHITECTURE REQUIREMENT SUB-SYSTEMS:
+
+1. COMPREHENSIVE MULTILINGUAL FRAMEWORK:
+- Implement a drop-down language selector supporting global languages (English, Japanese, Spanish, Mandarin, Hindi, Arabic, German, French, etc.).
+- The translation mechanism must be instant and completely client-side.
+- All UI labels, upload buttons, error states, interactive charts, and structural analysis fields must fully translate dynamically when the language changes.
+
+2. SECURE DATA PARSING & DISCONNECTED PROCESSING:
+- Build an elegant UI containing a data import drop-down or raw text delimiter matrix parsing area (supporting CSV/JSON formats).
+- Security Enforcement: Explicitly process all statistical computations locally within browser sandboxed memory. Show a secure visual indicator badge reading "Local Zero-Trust Execution Sandbox Active". 
+- Implement rigid data input sanitization algorithms to neutralize cross-site scripting (XSS) vectors or logic injection before processing data.
+
+3. ADVANCED INTELLIGENT MODELING & CHART ENGINE:
+- Program a mathematical processing layer inside native JavaScript to instantly compute critical data attributes: Mean, Median, Variance, Standard Deviation, Outliers, and Linear Regression Trajectory lines (y = mx + b).
+- Render beautifully responsive statistical charts (Bar, Line, and Scatter plots) using highly polished, standards-compliant inline SVG techniques or native HTML Canvas APIs. Do not use external CDN libraries (like Chart.js) to ensure zero third-party script vulnerabilities.
+- Provide a summary analysis pane generating intelligent automated insights regarding data trends, anomalies, and performance metrics based on the input values.
+
+4. PREMIUM DARK CYBERPUNK USER INTERFACE:
+- Style the application with an incredibly slick, premium enterprise dashboard theme matching your global hosting platform. 
+- Use deep blacks (#09090b), slate borders (#27272a), neon accents (#38bdf8), and clear font hierarchies. Ensure clean spacing, responsive layouts, and interactive hover feedback animations.`;
 
             try {
-                const secureSafeEndpoint = "https://googleapis.com" + apiKey;
+                // Official dynamic Google Gemini endpoint configuration routing format
+                const secureSafeEndpoint = `https://googleapis.com{apiKey}`;
 
                 const response = await fetch(secureSafeEndpoint, {
                     method: "POST",
@@ -105,26 +135,15 @@
                 }
 
                 const data = await response.json();
+                
+                if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content?.parts?.[0]?.text) {
+                    throw new Error("Invalid API response format structure.");
+                }
+
                 let executionCodeString = data.candidates[0].content.parts[0].text.trim();
 
+                // Clean up markdown block wrapping structural overflows if returned by mistake
                 executionCodeString = executionCodeString.replace(/^```html\s*/i, '');
                 executionCodeString = executionCodeString.replace(/```\s*$/, '');
                 executionCodeString = executionCodeString.trim();
 
-                sandbox.srcdoc = executionCodeString;
-                statusBar.innerHTML = "✅ Verification Passed! Code running smoothly inside active sandbox frame.";
-                promptInput.value = "";
-
-            } catch (err) {
-                console.error(err);
-                statusBar.innerHTML = "❌ Pipeline process halted. Verify API key authenticity and retry.";
-                alert("Runtime Exception Blocked: " + err.message);
-            } finally {
-                promptInput.disabled = false;
-                sendBtn.disabled = false;
-            }
-        }
-    </script>
-</body>
-    </html>
-    
